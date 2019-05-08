@@ -1,0 +1,14 @@
+# Created by .ignore support plugin (hsz.mobi)
+### Example user template template
+### Example user template
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+
+# My files
+/chinatax/data.json
+/chinatax/__pycache__/
+/chinatax/spiders/__pycache__/
