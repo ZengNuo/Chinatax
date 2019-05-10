@@ -128,7 +128,8 @@ RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 # http://username:password@host2:port
 # http://host3:port
 # ...
-PROXY_LIST = 'D:/zengnuo/workspace/PythonProject/chinatax/chinatax/proxies.txt'
+
+PROXY_LIST = './proxies.txt'
 
 # Proxy mode
 # 0 = Every requests have different proxy
