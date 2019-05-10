@@ -10,5 +10,8 @@ gen
 
 # My files
 /chinatax/data.json
+/chinatax/proxies.txt
+
+# Binary files
 /chinatax/__pycache__/
 /chinatax/spiders/__pycache__/
