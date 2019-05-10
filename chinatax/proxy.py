@@ -1,10 +1,8 @@
 # *-* coding:utf-8 *-*
-import requests
 from bs4 import BeautifulSoup
-import lxml
 from multiprocessing import Process, Queue
-import random
-import json
+import sys
+import re
 import time
 import requests
 
@@ -12,46 +10,84 @@ import requests
 class Proxies(object):
     """docstring for Proxies"""
 
-    def __init__(self, page=3):
+    def __init__(self, page=10):
         self.proxies = []
         self.verify_pro = []
         self.page = page
         self.headers = {
             'Accept': '*/*',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36',
-            'Accept-Encoding': 'gzip, deflate, sdch',
+            'Accept-Encoding': 'gzip, deflate',
             'Accept-Language': 'zh-CN,zh;q=0.8'
         }
-        self.get_proxies()
-        self.get_proxies_nn()
+        self.get_proxies_xila()
+        self.get_proxies_xici()
+        self.get_proxies_bajiu()
 
-    def get_proxies(self):
-        page = random.randint(1, 10)
+    def get_proxies_xila(self):
+        if requests.get('http://www.xiladaili.com', headers=self.headers, timeout=2).status_code != 200:
+            print('error in server: xiladaili.com')
+            return
+        page = 1
         page_stop = page + self.page
+        print('crawling data from www.xiladaili.com...')
         while page < page_stop:
-            url = 'http://www.xicidaili.com/nt/%d' % page
+            url = 'http://www.xiladaili.com/gaoni/%d' % page
             html = requests.get(url, headers=self.headers).content
+            soup = BeautifulSoup(html, 'lxml')
+            ip_list = soup.find(class_='fl-table')
+            if ip_list is None:
+                print('error in server: xiladaili.com')
+                return
+            for odd in ip_list.tbody.find_all('tr'):
+                protocol = 'https://' if odd.find_all('td')[1].get_text() == 'HTTPS代理' else 'http://'
+                proxy = protocol + odd.find_all('td')[0].get_text()
+                self.proxies.append(proxy)
+            page += 1
+            time.sleep(1)
+
+    def get_proxies_xici(self):
+        if requests.get('http://www.xicidaili.com', headers=self.headers, timeout=2).status_code != 200:
+            print('error in server: xicidaili.com')
+            return
+        page = 1
+        page_stop = page + self.page
+        print('crawling data from www.xicidaili.com...')
+        while page < page_stop:
+            url_nt = 'http://www.xicidaili.com/nt/%d' % page
+            html = requests.get(url_nt, headers=self.headers).content
+            soup = BeautifulSoup(html, 'lxml')
+            ip_list = soup.find(id='ip_list')
+            for odd in ip_list.find_all(class_='odd'):
+                protocol = odd.find_all('td')[5].get_text().lower() + '://'
+                self.proxies.append(protocol + ':'.join([x.get_text() for x in odd.find_all('td')[1:3]]))
+            url_nn = 'http://www.xicidaili.com/nn/%d' % page
+            html = requests.get(url_nn, headers=self.headers).content
             soup = BeautifulSoup(html, 'lxml')
             ip_list = soup.find(id='ip_list')
             for odd in ip_list.find_all(class_='odd'):
                 protocol = odd.find_all('td')[5].get_text().lower() + '://'
                 self.proxies.append(protocol + ':'.join([x.get_text() for x in odd.find_all('td')[1:3]]))
             page += 1
+            time.sleep(1)
 
-    def get_proxies_nn(self):
-        page = random.randint(1, 10)
-        page_stop = page + self.page
-        while page < page_stop:
-            url = 'http://www.xicidaili.com/nn/%d' % page
-            html = requests.get(url, headers=self.headers).content
-            soup = BeautifulSoup(html, 'lxml')
-            ip_list = soup.find(id='ip_list')
-            for odd in ip_list.find_all(class_='odd'):
-                protocol = odd.find_all('td')[5].get_text().lower() + '://'
-                self.proxies.append(protocol + ':'.join([x.get_text() for x in odd.find_all('td')[1:3]]))
-            page += 1
+    def get_proxies_bajiu(self):
+        if requests.get('http://www.89ip.com', headers=self.headers, timeout=2).status_code != 200:
+            print('error in server: 89ip.com')
+            return
+        print('crawling data from www.89ip.com...')
+        html = requests.get('http://www.89ip.cn/tqdl.html?api=1&num=1000&port=&address=&isp=').text
+        ip_list = re.split(r'<br>', html)
+        ip_list = ip_list[:-1]
+        ip_list = ip_list[2:]
+        for odd in ip_list:
+            proxy = 'http://' + odd
+            print(proxy)
+            self.proxies.append(proxy)
 
     def verify_proxies(self):
+        if len(self.proxies) < 1:
+            return
         # 没验证的代理
         old_queue = Queue()
         # 验证后的代理
@@ -91,9 +127,8 @@ class Proxies(object):
 
 
 if __name__ == '__main__':
-    a = Proxies()
+    a = Proxies(20)
     a.verify_proxies()
-    print(a.proxies)
     proxie = a.proxies
     with open('proxies.txt', 'a') as f:
         for proxy in proxie:
