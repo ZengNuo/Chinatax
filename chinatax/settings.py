@@ -19,7 +19,7 @@ NEWSPIDER_MODULE = 'chinatax.spiders'
 #USER_AGENT = 'chinatax (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -119,7 +119,7 @@ USER_AGENT_LIST = [
 
 
 # Retry many times since proxies often fail
-RETRY_TIMES = 20
+RETRY_TIMES = 1000
 # Retry on most error codes since proxies fail for different reasons
 RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 

@@ -10,7 +10,7 @@ import requests
 class Proxies(object):
     """docstring for Proxies"""
 
-    def __init__(self, page=10):
+    def __init__(self, page=3):
         self.proxies = []
         self.verify_pro = []
         self.page = page
@@ -20,8 +20,8 @@ class Proxies(object):
             'Accept-Encoding': 'gzip, deflate',
             'Accept-Language': 'zh-CN,zh;q=0.8'
         }
-        self.get_proxies_xila()
-        self.get_proxies_xici()
+        #self.get_proxies_xila()
+        #self.get_proxies_xici()
         self.get_proxies_bajiu()
 
     def get_proxies_xila(self):
@@ -72,17 +72,17 @@ class Proxies(object):
             time.sleep(1)
 
     def get_proxies_bajiu(self):
-        if requests.get('http://www.89ip.com', headers=self.headers, timeout=2).status_code != 200:
-            print('error in server: 89ip.com')
+        if requests.get('http://www.89ip.cn', headers=self.headers, timeout=2).status_code != 200:
+            print('error in server: 89ip.cn')
             return
         print('crawling data from www.89ip.com...')
-        html = requests.get('http://www.89ip.cn/tqdl.html?api=1&num=1000&port=&address=&isp=').text
+        html = requests.get('http://www.89ip.cn/tqdl.html?api=1&num=500').text
         ip_list = re.split(r'<br>', html)
         ip_list = ip_list[:-1]
         ip_list = ip_list[2:]
         for odd in ip_list:
             proxy = 'http://' + odd
-            print(proxy)
+            # print(proxy)
             self.proxies.append(proxy)
 
     def verify_proxies(self):

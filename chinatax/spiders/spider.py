@@ -3,6 +3,7 @@ import scrapy
 from scrapy import Request
 from scrapy import FormRequest
 from chinatax.items import ChinataxItem
+import re
 
 
 # 请求头
@@ -29,7 +30,7 @@ request_body = {
     'querystring25': 'articlefield02',
 
     # 查询字符串
-    'queryvalue': '阿',
+    'queryvalue': '北京',
 
     # 页码
     'cPage': '1',
@@ -42,50 +43,79 @@ request_body = {
 class ChinataxSpider(scrapy.Spider):
     name = 'chinatax'
     allowed_domains = ['hd.chinatax.gov.cn']
+    #
+    # type = input("查询类型（1.法人  2.自然人）：")
+    # if type == '1':
+    #     request_body['categeryid'] = '24'
+    #     keyword = input("查询关键字（1.纳税人名称  2.纳税人识别码  3.组织机构代码  4.法定代表人或负责人姓名  5.负有直接责任的财务负责人姓名）：")
+    #     if keyword == '1':
+    #         request_body['querystring24'] = 'articlefield02'
+    #     elif keyword == '2':
+    #         request_body['querystring24'] = 'articlefield03'
+    #     elif keyword == '3':
+    #         request_body['querystring24'] = 'articlefield04'
+    #     elif keyword == '4':
+    #         request_body['querystring24'] = 'articlefield06'
+    #     elif keyword == '5':
+    #         request_body['querystring24'] = 'articlefield09'
+    #     else:
+    #         print("输入不正确")
+    #         exit(0)
+    # elif type == '2':
+    #     request_body['categeryid'] = '25'
+    #     keyword = input("查询关键字（1.姓名）：")
+    #     if keyword == '1':
+    #         request_body['querystring24'] = 'articlefield09'
+    # else:
+    #     print("输入不正确")
+    #     exit(0)
+    #
+    # value = input("请输入查询字符串：")
+    # request_body['queryvalue'] = value
 
     def start_requests(self):
-
+        '模拟访问主页'
         return [Request(
-            url='http://hd.chinatax.gov.cn/xxk/',
             headers=headers,
-            callback=self.do_query
+            url='http://hd.chinatax.gov.cn/xxk',
+            callback=self.parse
         )]
 
-    def do_query(self, response):
-
+    def parse(self, response):
+        '获取案件列表'
         return [FormRequest.from_response(
             response,
-            headers=headers,
             url='http://hd.chinatax.gov.cn/xxk/action/ListXxk.do',
             formdata=request_body,
-            callback=self.get_list
+            callback=self.parse_list
         )]
 
-    def get_list(self, response):
-
-        next_page = response.xpath('//*[@id="searchForm"]/table[1]/tr/td/a[1]/@title').extract()[0]
-
+    def parse_list(self, response):
+        '获取案件的url和下一页'
         href_list = response.xpath('//*[@id="searchForm"]/table[2]/tr/td/a/@href').extract()
 
-        if next_page == '下一页':
+        top_bar = response.xpath('//*[@id="searchForm"]/table[1]//tr/td').extract()[0]
+        have_next = re.search('下一页', top_bar)
+
+        if have_next is not None:
             request_body['cPage'] = str(int(request_body['cPage']) + 1)
             yield FormRequest.from_response(
                 response,
                 headers=headers,
                 url='http://hd.chinatax.gov.cn/xxk/action/ListXxk.do',
                 formdata=request_body,
-                callback=self.get_list
+                callback=self.parse_list
             )
 
         for href in href_list:
             yield Request(
                 headers=headers,
                 url='http://hd.chinatax.gov.cn/xxk/action/' + href,
-                callback=self.get_detail
+                callback=self.parse_detail
             )
 
-    def get_detail(self, response):
-
+    def parse_detail(self, response):
+        '获取案件详情'
         items = ChinataxItem()
 
         info = response.xpath('/html/body/table/tr/td/table')
