@@ -75,11 +75,24 @@ class ChinataxSpider(scrapy.Spider):
 
     def start_requests(self):
         '模拟访问主页'
+        # for i in range(1, 5):
+        #     yield Request(
+        #         url='https://www.whatismybrowser.com/',
+        #         # meta={'proxy': "https://112.87.69.187:9999"},
+        #         callback=self.ppp,
+        #         dont_filter=True
+        #     )
         return [Request(
             headers=headers,
             url='http://hd.chinatax.gov.cn/xxk',
-            callback=self.parse
+            callback=self.parse,
+            dont_filter=True
         )]
+
+    def ppp(self, response):
+        #print(response.text)
+        ret = response.xpath('//*[@id="ip-address"]/div[2]/a').extract()
+        print(ret)
 
     def parse(self, response):
         '获取案件列表'
@@ -87,7 +100,8 @@ class ChinataxSpider(scrapy.Spider):
             response,
             url='http://hd.chinatax.gov.cn/xxk/action/ListXxk.do',
             formdata=request_body,
-            callback=self.parse_list
+            callback=self.parse_list,
+            dont_filter=True
         )]
 
     def parse_list(self, response):
@@ -104,14 +118,16 @@ class ChinataxSpider(scrapy.Spider):
                 headers=headers,
                 url='http://hd.chinatax.gov.cn/xxk/action/ListXxk.do',
                 formdata=request_body,
-                callback=self.parse_list
+                callback=self.parse_list,
+                dont_filter=True
             )
 
         for href in href_list:
             yield Request(
                 headers=headers,
                 url='http://hd.chinatax.gov.cn/xxk/action/' + href,
-                callback=self.parse_detail
+                callback=self.parse_detail,
+                dont_filter=True
             )
 
     def parse_detail(self, response):

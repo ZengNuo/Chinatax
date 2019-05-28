@@ -10,7 +10,7 @@ import requests
 class Proxies(object):
     """docstring for Proxies"""
 
-    def __init__(self, page=3):
+    def __init__(self, page=1):
         self.proxies = []
         self.verify_pro = []
         self.page = page
@@ -54,13 +54,13 @@ class Proxies(object):
         page_stop = page + self.page
         print('crawling data from www.xicidaili.com...')
         while page < page_stop:
-            url_nt = 'http://www.xicidaili.com/nt/%d' % page
-            html = requests.get(url_nt, headers=self.headers).content
-            soup = BeautifulSoup(html, 'lxml')
-            ip_list = soup.find(id='ip_list')
-            for odd in ip_list.find_all(class_='odd'):
-                protocol = odd.find_all('td')[5].get_text().lower() + '://'
-                self.proxies.append(protocol + ':'.join([x.get_text() for x in odd.find_all('td')[1:3]]))
+            # url_nt = 'http://www.xicidaili.com/nt/%d' % page
+            # html = requests.get(url_nt, headers=self.headers).content
+            # soup = BeautifulSoup(html, 'lxml')
+            # ip_list = soup.find(id='ip_list')
+            # for odd in ip_list.find_all(class_='odd'):
+            #     protocol = odd.find_all('td')[5].get_text().lower() + '://'
+            #     self.proxies.append(protocol + ':'.join([x.get_text() for x in odd.find_all('td')[1:3]]))
             url_nn = 'http://www.xicidaili.com/nn/%d' % page
             html = requests.get(url_nn, headers=self.headers).content
             soup = BeautifulSoup(html, 'lxml')
@@ -76,7 +76,7 @@ class Proxies(object):
             print('error in server: 89ip.cn')
             return
         print('crawling data from www.89ip.com...')
-        html = requests.get('http://www.89ip.cn/tqdl.html?api=1&num=500').text
+        html = requests.get('http://www.89ip.cn/tqdl.html?api=1&num=1000').text
         ip_list = re.split(r'<br>', html)
         ip_list = ip_list[:-1]
         ip_list = ip_list[2:]
@@ -118,8 +118,9 @@ class Proxies(object):
             if proxy == 0: break
             protocol = 'https' if 'https' in proxy else 'http'
             proxies = {protocol: proxy}
+            print(proxies)
             try:
-                if requests.get('http://www.baidu.com', proxies=proxies, timeout=2).status_code == 200:
+                if requests.get('http://hd.chinatax.gov.cn/xxk/action/ListXxk.do', proxies=proxies, timeout=2).status_code == 200:
                     print('success %s' % proxy)
                     new_queue.put(proxy)
             except:
@@ -127,9 +128,9 @@ class Proxies(object):
 
 
 if __name__ == '__main__':
-    a = Proxies(20)
+    a = Proxies(5)
     a.verify_proxies()
     proxie = a.proxies
-    with open('proxies.txt', 'a') as f:
+    with open('proxies.txt', 'w+') as f:
         for proxy in proxie:
             f.write(proxy + '\n')

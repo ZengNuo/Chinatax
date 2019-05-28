@@ -58,9 +58,10 @@ COOKIES_ENABLED = True
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     'chinatax.middlewares.RandomUserAgentMiddleware': 400,
-    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,
-    'scrapy_proxies.RandomProxy': 100,
-    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
+    'chinatax.middlewares.ProxyMiddleware': 543,
+    # 'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,
+    # 'scrapy_proxies.RandomProxy': 100,
+    # 'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
 }
 
 # Enable or disable extensions
@@ -119,9 +120,9 @@ USER_AGENT_LIST = [
 
 
 # Retry many times since proxies often fail
-RETRY_TIMES = 1000
+# RETRY_TIMES = 1000
 # Retry on most error codes since proxies fail for different reasons
-RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
+# RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 
 # Proxy list containing entries like
 # http://host1:port
@@ -129,13 +130,13 @@ RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 # http://host3:port
 # ...
 
-PROXY_LIST = './proxies.txt'
+# PROXY_LIST = './proxies.txt'
 
 # Proxy mode
 # 0 = Every requests have different proxy
 # 1 = Take only one proxy from the list and assign it to every requests
 # 2 = Put a custom proxy to use in the settings
-PROXY_MODE = 0
+# PROXY_MODE = 0
 
 # If proxy mode is 2 uncomment this sentence :
-#CUSTOM_PROXY = "http://host1:port"
+# CUSTOM_PROXY = "http://host1:port"
