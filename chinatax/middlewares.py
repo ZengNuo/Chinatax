@@ -14,33 +14,41 @@ from chinatax.settings import USER_AGENT_LIST
 
 class ProxyMiddleware(object):
 
+    proxies = []
+
+    def __init__(self):
+        '从文件中读取proxy'
+        while 1:
+            with open('./proxies.txt', 'r') as f:
+                self.proxies = f.readlines()
+            if self.proxies:
+                break
+            else:
+                time.sleep(1)
+
     def process_request(self, request, spider):
+        '对request处理'
         proxy = self.get_random_proxy()
-        print("this is request ip:" + proxy)
+        print("Request IP:" + proxy)
         request.meta['proxy'] = proxy
 
     def process_response(self, request, response, spider):
-        '''对返回的response处理'''
+        '对response处理'
         # 如果返回的response状态不是200，重新生成当前request对象
         if response.status != 200:
             proxy = self.get_random_proxy()
-            print("this is response ip:" + proxy)
-            # 对当前reque加上代理
+            self.proxies.remove(request.meta['proxy'])
+            print("Response IP:" + proxy)
+            # 对当前request加上代理
             request.meta['proxy'] = proxy
             return request
         return response
 
     def get_random_proxy(self):
-        '''随机从文件中读取proxy'''
-        while 1:
-            with open('./proxies.txt', 'r') as f:
-                proxies = f.readlines()
-            if proxies:
-                break
-            else:
-                time.sleep(1)
-        proxy = random.choice(proxies).strip()
-        return proxy
+        '随机选择proxy'
+        if len(self.proxies) > 1:
+            proxy = random.choice(self.proxies).strip()
+            return proxy
 
 
 class RandomUserAgentMiddleware(object):
